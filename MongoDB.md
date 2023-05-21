@@ -1,23 +1,27 @@
 ## Run a MongoDB container using Docker
 
 1. Pull the MongoDB Docker Image
-        docker pull mongodb/mongodb-community-server
+```
+docker pull mongodb/mongodb-community-server
+```
 
 2. Run the Image as a Container 
-        docker run --name mongo -d mongodb/mongodb-community-server:latest
-
+```        
+docker run --name mongo -d mongodb/mongodb-community-server:latest
+```
 3. Connect to the MongoDB Deployment with mongosh
-        docker exec -it mongo mongosh
-        
+``` 
+docker exec -it mongo mongosh
+```     
     The default port of MongoDB server is 27017
 
 
 
 ## Database, Collection & Document
-* A MongoDB server has one or more database (similiar to database in a SQL database server) 
-* Each database can have one or more collection in it (a Collection is similiar to Table in a SQL database) 
-* Each collection can have one or more Documents (a Document is similiar to Row in a SQL database)
-* Each document can have one or more key-value pairs (a Key is similiar to a column in a SQL database)
+* A MongoDB server has one or more database (Database is similiar to database in a SQL database server) 
+* Each database can have one or more collection (Collection is similiar to Table in a SQL database) 
+* Each collection can have one or more documents (Document is similiar to Row in a SQL database)
+* Each document can have one or more key-value pairs (Key is similiar to a column in a SQL database)
 
 
 ## Mongo Shell
@@ -37,7 +41,7 @@ The API interface provided by different MongoDB drivers are similiar to mongo sh
 > use {database_name}
 ```
 
-If a database is not present in the server with the specified name, a new database is be automatically created by the server with the provided name.
+If a database is not present in the server with the specified name, a new database is automatically created by the server with the provided name.
 
 Once we have selected a database, we can reference it with  **db.** 
 
@@ -52,7 +56,7 @@ or
 
 **Select a collection**
 
-To reference a collection we use collection name after db.  (e.g db.employee)
+To reference a collection, we use collection name after db.  (e.g db.employee)
 
 ```
 > db.{database_name}.{collection_name}
@@ -64,13 +68,13 @@ If a collection is not present in the database with the specified name, a new co
 
 **Creating document in a collection**
 
-Mongo shell provides insertOne() and insertMany() function to create on or many documents in a collection
+MongoDB shell provides insertOne() and insertMany() function to create on or many documents in a collection
 
-Create a  single document using insertOne() function
+Create a single document using insertOne() function
 ```
 db.user.insertOne({"name": "alex", age: 18})
 ```
-If document is created successfully, mongo server returns a object with acknowledgement status and id of created document
+If document is created successfully, mongo server returns a object with acknowledgement status and id of the created document
 
 ```
 {
@@ -88,12 +92,12 @@ db.user.find().pretty()
 ### Data Types
 
 * **Text** : "hello world"     
-* **Boolean** : true false
+* **Boolean** : true/false
 * **Integer (32 bit)** :  3
-* **NumberLong (64 bin)**: 10000000
+* **NumberLong (64 bit)**: 10000000
 * **NumberDecimal** :  3.4
 * **ObjectID** : ObjectId("646a0d760b2c00a3baea10fb")
-* **ISODate** :  ISODate("2019-09-09")    new Date()
+* **ISODate** :  ISODate("2019-09-09")   new Date()
 * **Timestamp** : Timestamp(63538922)     new Timestamp()
 * **EmbeddedDocument** : {"address":{"pincode": 12201}}
 * **Array** :  {"hobbies":["Cycling","Singing", "Gardening"]} 
@@ -101,9 +105,9 @@ db.user.find().pretty()
 MongoDB converts and stores JSON objects in BSON format. BSON is a binary format which is more efficent for storage, query operations, compression and data types.
 
 ### Document Key and its Value
-* For specifying key of a document use of double quote or single quote is optional if key doesn't contain any whitespace
-* If key contains any whitespace then it needs to be enclosed between double or single quotes
-* For specifying value of a document use of use of double or single quote for string values is necessary
+* For specifying key of a document use of double quotes or single quotes is optional, if the key doesn't contain any whitespace
+* If key contains any whitespace then key needs to be enclosed within double quotes or single quotes
+* For specifying value of a document, use of double quotes or single quote for string type values is necessary
 
 ### Document Schema
 Documents in a mongo db collection are schemaless.
@@ -212,6 +216,84 @@ _id is always included in result. To omit _id in query result we need to explici
 ### Update
 
 1. updateOne(filter, data, options)
+
+**Update value of a key** 
+```
+>db.user.updateOne({name:'bob'}, {$set:{name:'jerry'}})
+```
+Here we have use **$set** operator to update a document.
+
+**Add a new key-value in a document**
+
+```
+> db.user.updateOne({name:'jerry'}, {$set:{dob:new Date('2010-02-30')}})
+```
+```
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 1,
+  upsertedCount: 0
+}
+
+```
+'dob' key added
+```
+{
+    _id: ObjectId("646a567c3c96fdae53aebbcd"),
+    name: 'jerry',
+    age: 20,
+    dob: ISODate("2010-03-02T00:00:00.000Z")
+}
+```
+**Add a nested document**
+```
+> db.user.updateOne({name:'jerry'}, {$set:{address: {city: 'Delhi',country:'India'}}})
+
+```
+
+'address' key added
+```
+{
+    _id: ObjectId("646a567c3c96fdae53aebbcd"),
+    name: 'jerry',
+    age: 20,
+    dob: ISODate("2010-03-02T00:00:00.000Z"),
+    address: { city: 'Delhi', country: 'India' }
+}
+```
+**Update value of a nested key**
+
+```
+> db.user.updateOne({name:'jerry'}, {$set:{'address.city': 'Assam'}})
+```
+A nested key can be referenced using **. dot** operator
+```
+{
+    _id: ObjectId("646a567c3c96fdae53aebbcd"),
+    name: 'jerry',
+    age: 20,
+    dob: ISODate("2010-03-02T00:00:00.000Z"),
+    address: { city: 'Assam', country: 'India' }
+}
+```
+
+**Add a array type key**
+```
+> db.user.updateOne({name:'jerry'}, {$set:{'hobbies': ['Cycling','Gardening','Singing']}})
+```
+
+```
+{
+    _id: ObjectId("646a567c3c96fdae53aebbcd"),
+    name: 'jerry',
+    age: 20,
+    dob: ISODate("2010-03-02T00:00:00.000Z"),
+    address: { city: 'Assam', country: 'India' },
+    hobbies: [ 'Cycling', 'Gardening', 'Singing' ]
+}
+```
 
 
 2. updateMany(filter, data, options)
