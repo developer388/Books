@@ -7,7 +7,7 @@
         docker run --name mongo -d mongodb/mongodb-community-server:latest
 
 3. Connect to the MongoDB Deployment with mongosh
-		docker exec -it mongo mongosh
+        docker exec -it mongo mongosh
         
     The default port of MongoDB server is 27017
 
@@ -85,25 +85,153 @@ If document is created successfully, mongo server returns a object with acknowle
 db.user.find().pretty()
 ```
 
-**JSON & BSON**
+### Data Types
+
+* **Text** : "hello world"     
+* **Boolean** : true false
+* **Integer (32 bit)** :  3
+* **NumberLong (64 bin)**: 10000000
+* **NumberDecimal** :  3.4
+* **ObjectID** : ObjectId("646a0d760b2c00a3baea10fb")
+* **ISODate** :  ISODate("2019-09-09")    new Date()
+* **Timestamp** : Timestamp(63538922)     new Timestamp()
+* **EmbeddedDocument** : {"address":{"pincode": 12201}}
+* **Array** :  {"hobbies":["Cycling","Singing", "Gardening"]} 
 
 MongoDB converts and stores JSON objects in BSON format. BSON is a binary format which is more efficent for storage, query operations, compression and data types.
 
+### Document Key and its Value
+* For specifying key of a document use of double quote or single quote is optional if key doesn't contain any whitespace
+* If key contains any whitespace then it needs to be enclosed between double or single quotes
+* For specifying value of a document use of use of double or single quote for string values is necessary
 
-We can ommit the double quotes or single quotes for key name if it does't contain any whitespace.
-Value of keys always need to be wrapped in quotes
-
+### Document Schema
 Documents in a mongo db collection are schemaless.
+
+### CRUD Operations
+
+### Create
+
+1. insertOne(data, options)
+```
+> db.user.insertOne({"name": "alex", age: 18})
+```
+```
+{
+  acknowledged: true,
+  insertedId: ObjectId("646a0d760b2c00a3baea10fb")
+}
+```
+
+
+2. insertMany(data, options)
+```
+> db.user.insertMany([{name:"bob", age: 20},{name:"sam", age: 21}])
+```
+```
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId("646a567c3c96fdae53aebbcd"),
+    '1': ObjectId("646a567c3c96fdae53aebbce")
+  }
+}
+```
+
+### Read
+
+1. findOne(filter, options)
+
+```
+> db.user.find({ _id: ObjectId("646a567c3c96fdae53aebbce") })
+```
+```
+[ { _id: ObjectId("646a567c3c96fdae53aebbce"), name: 'sam', age: 21 } ]
+
+
+```
+2. find(filter, options)
+
+```
+> db.user.find({}).pretty()
+```
+```
+[
+  { _id: ObjectId("646a567c3c96fdae53aebbcd"), name: 'bob', age: 20 },
+  { _id: ObjectId("646a567c3c96fdae53aebbce"), name: 'sam', age: 21 }
+]
+
+```
+
+**Cursor**
+
+**find()** gives us a cursor object though which we can scroll over results of a query. By defaults cursor gives 20 results. We can navigate over database results through cursor.
+
+**pretty()** we can pretty function to beautify the json result of mongo query in shell
+
+**findOne()** gives us the actual document found for a query. It doesn't return a cursor and therefore we cannot use pretty() function on findOne().
+
+**Filtering search results**
+We can pass the key-values in first object to findOne() or find() to filter the search results (This is similiar to where clause in SQL)
+```
+> db.user.find({name: 'alex'})
+
+find documents where user.name is 'alex'
+
+```
+
+**Projection**
+
+Using projection we can read specific keys of a document (This similiar to select clause in SQL)
+
+```
+> db.user.find({}, {name:1}).pretty()
+
+Read all user but for each document only read name key and its value
+````
+```
+[
+  { _id: ObjectId("646a567c3c96fdae53aebbcd"), name: 'bob' },
+  { _id: ObjectId("646a567c3c96fdae53aebbce"), name: 'sam' }
+]
+```
+
+**_id key**
+
+_id is always included in result. To omit _id in query result we need to explicitly exclude it 
+```
+> db.user.find({}, {name:1, _id:0}).pretty()
+```
+```
+[ { name: 'bob' }, { name: 'sam' } ]
+
+```
+
+
+
+### Update
+
+1. updateOne(filter, data, options)
+
+
+2. updateMany(filter, data, options)
+
+
+3. replaceOne(filter, data, options)
+
+**Delete**
+* deleteOne(filter, options)
+* deleteMany(filter, options)
+
+
+
+
 
 We can use custom _id value while creating documents
 
 
 CRUD Operations:
 
-Create  : insertOne(data, options), insertMany(data, options)
-Read    : find(filter, options), findOne(filter, options)
-Update  : updateOne(filter, data, options), updateMany(filter, data, options), replaceOne(filter, data, options)
-Delete  : deleteOne(filter, options), deleteManu(filter, options)
 
 
 
@@ -118,13 +246,6 @@ Filter
 first argument to find, update, delete is filter object, through which we narrow down the search.
 Filters allows to limit the no. of documents in a collection
 
-Projection
-Using projection we can specify the keys of a document that we want to read from a document.  
-db.collection.find({}, {name:1}).pretty()
-Projections allows to limit the no. of fields in a document
-
-_id is always included in result. To omit _id in result we need to exclude _id 
-db.collection.find({}, {name:1, _id:0}).pretty()
 
 
 Embedded Documents
@@ -141,17 +262,6 @@ find({"array_name": "value1"})  find can search for array of string directly
 In a SQL table, if a column doesn't have a value we have null value for that column in row
 In a Mongo, if a document doesnt't have a value for a key, we can omit that key because mongo db is schemaless
 
-Data Types:
-Text:     
-Boolean: true/false
-Integer (32 bit):  3
-NumberLong (64 bin): 10000000
-NumberDecimal:  3.4
-ObjectID: ObjectId("askln")
-ISODate:  ISODate("2019-09-09")    new Date()
-Timestamp: Timestamp(63538922)     new Timestamp()
-EmbeddedDocument: {{}}
-Array:  {"b":[]} 
 
 
 db.stats()  can be used to view stats information
